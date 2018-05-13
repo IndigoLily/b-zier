@@ -36,7 +36,7 @@ function bezier(t, ...points) {
 }
 
 const speeds = [];
-for (let i = 0; i < w / 100; ++i) {
+for (let i = 0; i < Math.max(w / 100, 5); ++i) {
     speeds[i] = Math.random() + 0.1;
     speeds[i] *= Math.sign(Math.random() - 0.5);
 }
