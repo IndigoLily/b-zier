@@ -4,10 +4,10 @@ const cnv = document.getElementById('cnv'),
 let     w = cnv.width  = innerWidth,
         h = cnv.height = innerHeight;
 
-let show_control = true;
+let display = 1;
 
 window.addEventListener('click', e => {
-    show_control = !show_control;
+    display = (display + 1) % 3;
 });
 
 const sin = Math.sin;
@@ -36,13 +36,15 @@ function bezier(t, ...points) {
 }
 
 const speeds = [];
-for (let i = 0; i < 10; ++i) {
+for (let i = 0; i < w / 100; ++i) {
     speeds[i] = Math.random() + 0.1;
+    speeds[i] *= Math.sign(Math.random() - 0.5);
 }
 
 let p = [];
 for (let i = 0, l = speeds.length; i < l; ++i) {
-    p[i] = new Vector();
+    let x = i / (l-1) * (w*0.9) + (w*0.05);
+    p[i] = new Vector(x, 0);
 }
 
 draw();
@@ -51,33 +53,51 @@ function draw(frame = 0) {
     w = cnv.width  = innerWidth;
     h = cnv.height = innerHeight;
     c.translate(0, h/2);
-    c.fillStyle   = '#FFF';
-    c.strokeStyle = '#FFF';
-    c.shadowColor = '#FFF6';
-    c.shadowBlur  = 30;
+    c.fillStyle   = '#FFFFF0';
+    c.strokeStyle = '#FFFFF0';
+    if (display != 0) {
+        c.shadowColor = '#FFFFF080';
+        c.shadowBlur  = 20;
+    }
 
     for (let i = 0, l = speeds.length; i < l; ++i) {
         let x = i / (l-1) * (w*0.9) + (w*0.05);
-        let y = sin((frame + 10000) * speeds[i] / 60) * h / 2 * 0.8;
-        p[i].set(x, y);
+        if (i != 0 && i != l - 1) {
+            let y = sin((frame) * speeds[i] / 60) * h / 2 * 0.8;
+            p[i].set(x, y);
+        } else {
+            p[i].x = x;
+        }
     }
 
-    if (show_control) {
-        const lines = new Path2D();
+    c.save();
+    c.globalAlpha = 0.2;
+    c.lineWidth = 1;
+    if (display == 1) {
+        c.beginPath();
         for (let i = 0; i < p.length; ++i) {
-            lines.lineTo(...p[i].xy);
+            c.lineTo(...p[i].xy);
+        }
+        c.stroke();
+    } else if (display == 2) {
+        for (let i = 1; i < p.length; ++i) {
+            c.beginPath();
+            c.moveTo(...p[i].xy);
+            c.lineTo(...bezier(i / (p.length - 1), ...p).xy);
+            c.stroke();
+        }
+    }
+    c.restore();
 
+    if (display != 0) {
+        for (let i = 0; i < p.length; ++i) {
             c.beginPath();
             c.arc(...p[i].xy, 10/3, 0, Math.PI * 2);
             c.fill();
         }
-        c.globalAlpha = 0.25;
-        c.lineWidth = 1;
-        c.stroke(lines);
     }
 
     const steps = w;
-    c.globalAlpha = 1;
     c.lineWidth = 2;
     c.beginPath();
     for (let i = 0; i <= steps; ++i) {
