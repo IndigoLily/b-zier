@@ -21,16 +21,18 @@ function lerp2d(point1, point2, t) {
 }
 
 function bezier(t, ...points) {
-    if (points.length == 1) {
-        return points[0];
+    let inter = [], i, l;
+
+    while (points.length > 1) {
+        l = points.length - 1
+        for (i = 0; i < l; ++i) {
+            inter.push(lerp2d(points[i], points[i+1], t));
+        }
+        points = inter;
+        inter = [];
     }
 
-    let inter = [];
-    for (let i = 0, l = points.length - 1; i < l; ++i) {
-        inter.push(lerp2d(points[i], points[i+1], t));
-    }
-
-    return bezier(t, ...inter);
+    return points[0];
 }
 
 const speeds = [];
@@ -69,7 +71,7 @@ function draw(frame = 0) {
             c.arc(...p[i].xy, 10/3, 0, Math.PI * 2);
             c.fill();
         }
-        c.globalAlpha = 0.1;
+        c.globalAlpha = 0.25;
         c.lineWidth = 1;
         c.stroke(lines);
     }
